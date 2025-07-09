@@ -38,7 +38,8 @@ function connectBot() {
     entityId = packet.runtime_entity_id;
     console.log(`✅ Bot received start_game. entityId = ${entityId}`);
 
-    const confirm = await askQuestion(`❓ Use this entityId (${entityId})? (Y/N): `);
+const confirm = 'y'; // auto-confirm on headless platforms like Render
+
     if (confirm.trim().toLowerCase() !== 'y') {
       const manual = await askQuestion('✏️ Enter the correct entityId: ');
       try {
