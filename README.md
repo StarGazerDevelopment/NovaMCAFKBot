@@ -1,1 +1,1 @@
-# bedrock-afk-bot
+# NovaMCAFKBot
