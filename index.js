@@ -2,8 +2,8 @@ const { createClient } = require('bedrock-protocol');
 const readline = require('readline');
 
 const options = {
-  host: 'peppapig12321.aternos.me',
-  port: 20656,
+  host: 'PlayNova.aternos.me',
+  port: 44333,
   username: 'AFK_Bot',
   offline: true,
   version: '1.21.93'
