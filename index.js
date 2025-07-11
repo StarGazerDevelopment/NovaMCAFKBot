@@ -17,6 +17,8 @@ app.get('/', (req, res) => res.send('AFK Bot is running!'));
 function connectBot() {
   const client = createClient(options);
   let entityId;
+  let moveInterval;
+  let chatInterval;
 
   console.log('Starting bedrock-afk-bot...');
 
@@ -29,9 +31,8 @@ function connectBot() {
   });
 
   client.on('start_game', (packet) => {
-    entityId = packet.runtime_entity_id;
+    entityId = BigInt(packet.runtime_entity_id);
     console.log(`✅ Bot received start_game. entityId = ${entityId}`);
-    entityId = BigInt(entityId);
 
     setTimeout(() => {
       console.log('✅ Bot fully spawned and ready');
@@ -39,16 +40,17 @@ function connectBot() {
       let x = 0;
       let direction = 1;
 
-      // ⏱️ Movement loop
-      setInterval(() => {
+      // Move every 0.5s
+      moveInterval = setInterval(() => {
+        if (!client?.raknet?.connected) return;
         try {
-          x += direction * 1;
+          x += direction;
           if (x > 4 || x < 0) direction *= -1;
 
           console.log(`🚶 Bot walking to x=${x}`);
           client.write('move_player', {
             runtime_entity_id: entityId,
-            position: { x: x, y: 70, z: 0 },
+            position: { x, y: 70, z: 0 },
             rotation: { x: 0, y: 0, z: 0 },
             pitch: 0,
             head_yaw: 0,
@@ -65,10 +67,11 @@ function connectBot() {
         } catch (e) {
           console.error('⚠️ Move send failed:', e.message);
         }
-      }, 500); // move every 0.5s
+      }, 500);
 
-      // 💬 Chat message loop
-      setInterval(() => {
+      // Chat every 60s
+      chatInterval = setInterval(() => {
+        if (!client?.raknet?.connected) return;
         try {
           client.queue('text', {
             type: 'chat',
@@ -82,13 +85,14 @@ function connectBot() {
         } catch (e) {
           console.error('⚠️ Chat send failed:', e.message);
         }
-      }, 60000); // every 60 seconds
-
+      }, 60000);
     }, 3000);
   });
 
   client.on('disconnect', (reason) => {
     console.log('❌ Disconnected:', reason);
+    clearInterval(moveInterval);
+    clearInterval(chatInterval);
     setTimeout(connectBot, 5000);
   });
 
