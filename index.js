@@ -1,3 +1,33 @@
+const express = require('express');
+const { createClient } = require('bedrock-protocol');
+
+const options = {
+  host: 'PlayNova.aternos.me',
+  port: 44333,
+  username: 'AFK_Bot',
+  offline: true,
+  version: '1.21.93'
+};
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get('/', (req, res) => res.send('AFK Bot is running!'));
+
+function connectBot() {
+  const client = createClient(options);
+  let entityId;
+
+  console.log('Starting bedrock-afk-bot...');
+
+  client.on('connect', () => {
+    console.log('✅ Connected to server');
+  });
+
+  client.on('join', () => {
+    console.log('✅ Bot joined the game');
+  });
+
   client.on('start_game', (packet) => {
     try {
       entityId = BigInt(packet.runtime_entity_id);
@@ -13,7 +43,8 @@
       let x = 0;
       let direction = 1;
 
-      moveInterval = setInterval(() => {
+      // Movement loop
+      setInterval(() => {
         try {
           x += direction;
           if (x > 4 || x < 0) direction *= -1;
@@ -40,7 +71,8 @@
         }
       }, 500);
 
-      chatInterval = setInterval(() => {
+      // Chat message loop
+      setInterval(() => {
         try {
           client.queue('text', {
             type: 'chat',
@@ -57,3 +89,19 @@
       }, 60000);
     }, 3000);
   });
+
+  client.on('disconnect', (reason) => {
+    console.log('❌ Disconnected:', reason);
+    setTimeout(connectBot, 5000);
+  });
+
+  client.on('error', (err) => {
+    console.error('⚠️ Error:', err.message);
+  });
+}
+
+connectBot();
+
+app.listen(port, () => {
+  console.log(`Web server listening on port ${port}`);
+});
